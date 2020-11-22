@@ -1,3 +1,4 @@
+import logging
 from os import environ
 
 import discord
@@ -8,6 +9,14 @@ if 'DISCORD_TOKEN' not in environ:
 TOKEN = environ.get('DISCORD_TOKEN')
 
 client = discord.Client()
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
+handler.setFormatter(
+	logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
+)
+logger.addHandler(handler)
 
 
 @client.event
