@@ -1,0 +1,29 @@
+os: linux
+dist: focal
+
+language: python
+python:
+    - "3.9.0"
+
+branches:
+    only:
+        - master
+        - stable
+        - dev
+
+addons:
+    apt:
+        update: true
+
+install:
+    - sudo apt install -y libsm6 libxrender1 libfontconfig1 libice6 libgl1-mesa-glx
+    - pip install -U pip pipenv
+    - pipenv --python 3.9.0
+#    - pipenv install --dev
+
+#before_script:
+#    - pass
+
+script:
+    - pipenv install --dev
+#    - python bot.py

@@ -1,0 +1,22 @@
+{
+	"name": "DeepFryBot",
+	"description": "Discord bot for all your deep frying needs.",
+	"logo": "https://github.com/Rippr/DeepFryBot/blob/master/branding/logo.png?raw=true",
+	"website": "https://telegram.me/therealdankbot",
+	"image": "heroku/python",
+	"repository": "https://github.com/Rippr/DeepFryBot.git",
+	"keywords": [
+		"python",
+		"deepfrybot",
+		"bot",
+		"discord"
+	],
+	"buildpacks": [
+		{
+			"url": "https://buildpack-registry.s3.amazonaws.com/buildpacks/heroku-community/apt.tgz"
+		},
+		{
+			"url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+		}
+	]
+}
