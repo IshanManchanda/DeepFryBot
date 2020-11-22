@@ -4,6 +4,8 @@ from os import environ
 import discord
 from dotenv import load_dotenv
 
+from bin.helpers import fry_helper
+
 if 'DISCORD_TOKEN' not in environ:
 	load_dotenv()
 TOKEN = environ.get('DISCORD_TOKEN')
@@ -30,6 +32,14 @@ async def on_message(message):
 
 	if message.author == client.user:
 		return
+
+	if len(message.embeds):
+		print(f'Found {len(message.embeds)} embeds')
+		print(message.embeds[0].url)
+
+	if len(message.attachments):
+		# with message.channel.typing:
+		await fry_helper(message)
 
 	if message.content.startswith('$hello'):
 		await message.channel.send('Hello!')
