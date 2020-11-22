@@ -7,14 +7,23 @@ if 'DISCORD_TOKEN' not in environ:
 	load_dotenv()
 TOKEN = environ.get('DISCORD_TOKEN')
 
-
-class MyClient(discord.Client):
-	async def on_ready(self):
-		print('Logged on as {0}!'.format(self.user))
-
-	async def on_message(self, message):
-		print('Message from {0.author}: {0.content}'.format(message))
+client = discord.Client()
 
 
-client = MyClient()
+@client.event
+async def on_ready():
+	print('Logged in as {0.user}'.format(client))
+
+
+@client.event
+async def on_message(message):
+	print('Message from {0.author}: {0.content}'.format(message))
+
+	if message.author == client.user:
+		return
+
+	if message.content.startswith('$hello'):
+		await message.channel.send('Hello!')
+
+
 client.run(TOKEN)
