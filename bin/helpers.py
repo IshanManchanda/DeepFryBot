@@ -11,7 +11,8 @@ async def fry_helper(message):
 		n = (
 			5 if 'tsar bomba' in text else
 			3 if 'nuke' in text or 'nuking' in text else
-			1 if 'fry' in text else 0
+			# REVIEW: Change to 0 when reply feature done
+			1 if 'fry' in text else 1
 		)
 		args = {key: 1 if key in text else 0 for key in keys}
 		await fry_image(message, attachment, n, args)
