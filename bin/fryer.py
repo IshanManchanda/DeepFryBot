@@ -133,7 +133,7 @@ def __find_chars(img):
 	# Idk
 	kernel = getStructuringElement(MORPH_CROSS, (3, 3))
 	dilated = dilate(new_img, kernel, iterations=1)
-	_, contours, _ = findContours(dilated, RETR_EXTERNAL, CHAIN_APPROX_NONE)
+	contours, _ = findContours(dilated, RETR_EXTERNAL, CHAIN_APPROX_NONE)
 
 	coords = []
 	for contour in contours:
