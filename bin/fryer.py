@@ -9,7 +9,7 @@ from cv2 import CHAIN_APPROX_NONE, CascadeClassifier, MORPH_CROSS, \
 	RETR_EXTERNAL, THRESH_BINARY, THRESH_BINARY_INV, bitwise_and, \
 	boundingRect, dilate, findContours, getStructuringElement, threshold
 from discord import File
-from numba import jit
+from numba import njit
 from numpy import arcsin, arctan, array, copy, pi, sin, sqrt, square, sum
 from numpy.random import normal, random
 from pyimgur import Imgur
@@ -40,7 +40,7 @@ async def fry_image(message, attachment, number_of_cycles, args):
 
 	if img.mode != 'RGB':
 		img = img.convert('RGB')
-	img.save(filepath)
+	# img.save(filepath)
 	log_info('Image successfully downloaded')
 
 	number_of_emojis = (
@@ -84,7 +84,6 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	return
 
 
-@jit(fastmath=True)
 def __fry(
 		img, number_of_cycles, number_of_emojis,
 		bulge_probability, laser, vitamin_b
@@ -92,62 +91,49 @@ def __fry(
 	log_info('__fry starting')
 	if laser:
 		log_info('Finding eye coordinates')
-		eye_coords = __find_eyes(img)
-		log_info('Eye coordinates found')
-		img = __add_lasers(img, eye_coords)
-		log_info('Laser eyes added')
+		coords = __find_eyes(img)
+		if coords:
+			log_info('Eye coordinates found')
+			img = __add_lasers(img, coords)
+			log_info('Laser eyes added')
+		else:
+			log_info('No eye coordinates found')
 
 	if vitamin_b:
 		log_info('Finding char coordinates')
 		coords = __find_chars(img)
-		log_info('Char coordinates found')
-		img = __add_b(img, coords, number_of_emojis / 20)
-		log_info('"B"s added')
+		if coords:
+			log_info('Char coordinates found')
+			img = __add_b(img, coords, number_of_emojis / 20)
+			log_info('"B"s added')
+		else:
+			log_info('No char coordinates found')
 
-	log_info('Starting emoji adding')
+	log_info('Adding emojis')
 	img = __add_emojis(img, number_of_cycles * number_of_emojis)
 	log_info('emojis added')
 
-	log_info('Starting bulge adding')
-	w, h = img.width - 1, img.height - 1
-	for _ in range(number_of_cycles):
-		if random(1)[0] > bulge_probability:
-			continue
-
-		# (img, coords, radius, flatness, h, ior)
-		img = __add_bulge(
-			img,
-			array([
-				int(w * random(1)),
-				int(h * random(1))
-			]),
-			int(((img.width + img.height) / 10) * (random(1)[0] + 1)),
-			1 + random(3)[0],
-			6 + random(2)[0],
-			1.2 + random(2)[0]
-		)
+	log_info('Adding bulges')
+	__add_bulges_helper(img, number_of_cycles, bulge_probability)
 	log_info('Bulges added, __fry completed')
 	return img
 
 
-@jit(fastmath=True)
 def __find_chars(img):
-	log_info('__find_chars called')
 	# Convert image to B&W
 	gray = array(img.convert("L"))
 
 	# Convert image to binary
 	ret, mask = threshold(gray, 180, 255, THRESH_BINARY)
 	image_final = bitwise_and(gray, gray, mask=mask)
-	Image.fromarray(image_final).save('image_final.png')
+	# Image.fromarray(image_final).save('image_final.png')
 
 	ret, new_img = threshold(image_final, 180, 255, THRESH_BINARY_INV)
-	Image.fromarray(new_img).save('new_img.png')
+	# Image.fromarray(new_img).save('new_img.png')
 
 	# Idk
 	kernel = getStructuringElement(MORPH_CROSS, (3, 3))
 	dilated = dilate(new_img, kernel, iterations=1)
-	Image.fromarray(dilated).save('out.png')
 	_, contours, _ = findContours(dilated, RETR_EXTERNAL, CHAIN_APPROX_NONE)
 
 	coords = []
@@ -158,14 +144,10 @@ def __find_chars(img):
 		# if w > 70 and h > 70:
 		# 	continue
 		coords.append((x, y, w, h))
-
-	log_info('__find_chars completed')
 	return coords
 
 
-@jit(fastmath=True)
 def __find_eyes(img):
-	log_info('__find_eyes starting')
 	coords = []
 	face_cascade = CascadeClassifier(
 		path_join(bin_path, 'resources/classifiers/haarcascade_frontalface.xml')
@@ -181,12 +163,9 @@ def __find_eyes(img):
 		eyes = eye_cascade.detectMultiScale(roi_gray)
 		for (ex, ey, ew, eh) in eyes:
 			coords.append((x + ex + ew / 2, y + ey + eh / 2))
-
-	log_info('__find_eyes completed')
 	return coords
 
 
-@jit(fastmath=True)
 def __posterize(img, p):
 	return ImageOps.posterize(
 		img,
@@ -194,26 +173,21 @@ def __posterize(img, p):
 	)
 
 
-@jit(fastmath=True)
 def __sharpen(img, p):
 	return ImageEnhance.Sharpness(img).enhance(
 		(img.width * img.height * p / 3200) ** 0.4
 	)
 
 
-@jit(fastmath=True)
 def __increase_contrast(img, p):
 	return ImageEnhance.Contrast(img).enhance(normal(1.8, 0.8) * p / 2)
 
 
-@jit(fastmath=True)
 def __colorize(img, p):
 	return ImageEnhance.Color(img).enhance(normal(2.5, 1) * p / 2)
 
 
-@jit(fastmath=True)
 def __add_lasers(img, coords):
-	log_info('__add_lasers started')
 	if not coords:
 		return img
 	tmp = img.copy()
@@ -227,13 +201,10 @@ def __add_lasers(img, coords):
 			), laser
 		)
 
-	log_info('__add_lasers completed')
 	return tmp
 
 
-@jit(fastmath=True)
 def __add_b(img, coords, c):
-	log_info('__add_b started')
 	tmp = img.copy()
 
 	b = Image.open(path_join(bin_path, 'resources/frying/b.png'))
@@ -243,14 +214,11 @@ def __add_b(img, coords, c):
 			resized.thumbnail((coord[2], coord[3]), Image.ANTIALIAS)
 			tmp.paste(resized, (int(coord[0]), int(coord[1])), resized)
 
-	log_info('__add_b completed')
 	return tmp
 
 
-@jit(fastmath=True)
 def __add_emojis(img, m):
-	log_info('__add_emojis started')
-	emojis = ['100', 'fire', 'hmmm', 'laugh', 'ok',]
+	emojis = ['100', 'fire', 'hmmm', 'laugh', 'ok', ]
 	tmp = img.copy()
 
 	for e in emojis:
@@ -265,17 +233,42 @@ def __add_emojis(img, m):
 			resized.thumbnail((size, size), Image.ANTIALIAS)
 			tmp.paste(resized, (int(coord[0]), int(coord[1])), resized)
 
-	log_info('__add_emojis completed')
 	return tmp
 
 
-@jit(fastmath=True)
-def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
+def __add_bulges_helper(img, number_of_cycles, bulge_probability):
+	w, h = img.width - 1, img.height - 1
+	if w * h > 9000000:
+		return img
+
+	img_data = array(img)
+	for _ in range(number_of_cycles):
+		if random(1)[0] > bulge_probability:
+			continue
+
+		# (img, coords, radius, flatness, h, ior)
+		img_data = __add_bulges(
+			img_data, array([w, h]),
+			array([
+				int(w * random(1)),
+				int(h * random(1))
+			]),
+			int(((img.width + img.height) / 10) * (random(1)[0] + 1)),
+			1 + random(3)[0],
+			6 + random(2)[0],
+			1.2 + random(2)[0]
+		)
+
+	return Image.fromarray(img_data)
+
+
+@njit(fastmath=True)
+def __add_bulges(img_data, size, coords, radius, flatness, h, ior):
 	"""
 	Creates a bulge like distortion to the image
 
-	:param img: The Image
-	:type img: PIL.Image
+	# :param img: The Image
+	# :type img: PIL.Image
 	:param coords: Numpy Array with Coordinates of Centre of Bulge
 	:type coords: numpy.array
 	:param radius: Radius of Bulge
@@ -289,39 +282,20 @@ def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 	:return: The Bulged Image
 	:rtype: PIL.Image
 	"""
-	log_info('__add_bulge started')
-
-	width = img.width
-	height = img.height
-	# noinspection PyTypeChecker
-	img_data = array(img)
-
-	if width * height > 9000000:
-		return img
 
 	# Determine range of pixels to be checked (square enclosing bulge)
 	x_min = int(coords[0] - radius)
 	if x_min < 0:
 		x_min = 0
 	x_max = int(coords[0] + radius)
-	if x_max > width:
-		x_max = width
+	if x_max > size[0]:
+		x_max = size[0]
 	y_min = int(coords[1] - radius)
 	if y_min < 0:
 		y_min = 0
 	y_max = int(coords[1] + radius)
-	if y_max > height:
-		y_max = height
-
-	# Make sure that bounds are int and not np array
-	if isinstance(x_min, type(array([]))):
-		x_min = x_min[0]
-	if isinstance(x_max, type(array([]))):
-		x_max = x_max[0]
-	if isinstance(y_min, type(array([]))):
-		y_min = y_min[0]
-	if isinstance(y_max, type(array([]))):
-		y_max = y_max[0]
+	if y_max > size[1]:
+		y_max = size[1]
 
 	# Array for holding bulged image
 	bulged = copy(img_data)
@@ -336,7 +310,6 @@ def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 			# If the ray is in the centre of the bulge or beyond the radius,
 			# it doesn't need to be modified
 			if not 0 < s < radius:
-				bulged[y][x] = img_data[y][x]
 				continue
 
 			# Slope of the bulge relative to xy plane at (x, y) of the ray
@@ -361,15 +334,13 @@ def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 			intersect = ray + normalized * k
 
 			# Assign pixel the colour of pixel at intersection
-			if 0 < intersect[0] < width - 1 and 0 < intersect[1] < height - 1:
+			if 0 < intersect[0] < size[0] and 0 < intersect[1] < size[1]:
 				bulged[y][x] = img_data[int(intersect[1])][int(intersect[0])]
 			else:
 				# No light reaching the pixel
 				bulged[y][x] = [0, 0, 0]
-	img = Image.fromarray(bulged)
 
-	log_info('__add_bulge completed')
-	return img
+	return bulged
 
 
 async def __upload_to_imgur(path, caption):
