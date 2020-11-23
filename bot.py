@@ -28,21 +28,23 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-	print('Message from {0.author}: {0.content}'.format(message))
+	print(f'Message from {message.author}: {message.content}')
 
 	if message.author == client.user:
 		return
 
+	# TODO: Enable frying embeds as well
 	if len(message.embeds):
 		print(f'Found {len(message.embeds)} embeds')
 		print(message.embeds[0].url)
 
 	if len(message.attachments):
+		# TODO: Send channel typing update
 		# with message.channel.typing:
 		await fry_helper(message)
 
-	if message.content.startswith('$hello'):
-		await message.channel.send('Hello!')
+	if message.content.startswith('!ping'):
+		await message.channel.send(f'Pong! Latency: {client.latency}')
 
 
 client.run(TOKEN)

@@ -9,6 +9,7 @@ from cv2 import CHAIN_APPROX_NONE, CascadeClassifier, MORPH_CROSS, \
 	RETR_EXTERNAL, THRESH_BINARY, THRESH_BINARY_INV, bitwise_and, \
 	boundingRect, dilate, findContours, getStructuringElement, threshold
 from discord import File
+from numba import jit
 from numpy import arcsin, arctan, array, copy, pi, sin, sqrt, square, sum
 from numpy.random import normal, random
 from pyimgur import Imgur
@@ -56,11 +57,10 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	magnitude = 4 if args['deep'] else 1 if args['shallow'] else 2
 
 	caption = __get_caption(name, number_of_cycles, args)
-	# caption = f'Requested by {name}.'
 
 	img = __fry(
 		img, number_of_cycles, number_of_emojis,
-		bulge_probability, args['chilli'], args['vitamin-b']
+		bulge_probability, not args['no-chilli'], args['vitamin-b']
 	)
 
 	log_info('Frying effects starting')
@@ -79,12 +79,12 @@ async def fry_image(message, attachment, number_of_cycles, args):
 
 	img.save(filepath, 'PNG')
 	log_info('Image saved and replied')
-	# __upload_to_imgur(filepath, caption)
+	# await __upload_to_imgur(filepath, caption)
 	# log_info('Image frying process completed')
 	return
 
 
-# @jit(fastmath=True)
+@jit(fastmath=True)
 def __fry(
 		img, number_of_cycles, number_of_emojis,
 		bulge_probability, laser, vitamin_b
@@ -130,7 +130,7 @@ def __fry(
 	return img
 
 
-# @jit(fastmath=True)
+@jit(fastmath=True)
 def __find_chars(img):
 	log_info('__find_chars called')
 	# Convert image to B&W
@@ -163,7 +163,7 @@ def __find_chars(img):
 	return coords
 
 
-# @jit(fastmath=True)
+@jit(fastmath=True)
 def __find_eyes(img):
 	log_info('__find_eyes starting')
 	coords = []
@@ -186,6 +186,7 @@ def __find_eyes(img):
 	return coords
 
 
+@jit(fastmath=True)
 def __posterize(img, p):
 	return ImageOps.posterize(
 		img,
@@ -193,20 +194,24 @@ def __posterize(img, p):
 	)
 
 
+@jit(fastmath=True)
 def __sharpen(img, p):
 	return ImageEnhance.Sharpness(img).enhance(
 		(img.width * img.height * p / 3200) ** 0.4
 	)
 
 
+@jit(fastmath=True)
 def __increase_contrast(img, p):
 	return ImageEnhance.Contrast(img).enhance(normal(1.8, 0.8) * p / 2)
 
 
+@jit(fastmath=True)
 def __colorize(img, p):
 	return ImageEnhance.Color(img).enhance(normal(2.5, 1) * p / 2)
 
 
+@jit(fastmath=True)
 def __add_lasers(img, coords):
 	log_info('__add_lasers started')
 	if not coords:
@@ -226,7 +231,7 @@ def __add_lasers(img, coords):
 	return tmp
 
 
-# @jit(fastmath=True)
+@jit(fastmath=True)
 def __add_b(img, coords, c):
 	log_info('__add_b started')
 	tmp = img.copy()
@@ -242,7 +247,7 @@ def __add_b(img, coords, c):
 	return tmp
 
 
-# @jit(fastmath=True)
+@jit(fastmath=True)
 def __add_emojis(img, m):
 	log_info('__add_emojis started')
 	emojis = ['100', 'fire', 'hmmm', 'laugh', 'ok',]
@@ -264,7 +269,7 @@ def __add_emojis(img, m):
 	return tmp
 
 
-# @jit(fastmath=True)
+@jit(fastmath=True)
 def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 	"""
 	Creates a bulge like distortion to the image
@@ -367,8 +372,7 @@ def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 	return img
 
 
-# @run_async
-def __upload_to_imgur(path, caption):
+async def __upload_to_imgur(path, caption):
 	log_info('__upload started')
 	if not isfile(path):
 		log_warn('File to be uploaded not found')
@@ -422,11 +426,11 @@ def __get_caption(name, number_of_cycles, args):
 			else 'Classic'
 		)
 	)
-	if args['chilli']:
+	if args['no-chilli']:
 		if args['vitamin-b']:
-			return f'{caption}, with extra Chilli and added Vitamin-B.'
+			return f'{caption}, with added Vitamin-B and no Chilli.'
 
-		return f'{caption}, with extra Chilli.'
+		return f'{caption}, without Chilli.'
 
 	if args['vitamin-b']:
 		return f'{caption}, with added Vitamin-B.'
