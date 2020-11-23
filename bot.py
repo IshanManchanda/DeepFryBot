@@ -5,6 +5,7 @@ import discord
 from dotenv import load_dotenv
 
 from bin.helpers import fry_helper
+from bin.utils.logs import log_info
 
 if 'DISCORD_TOKEN' not in environ:
 	load_dotenv()
@@ -44,6 +45,7 @@ async def on_message(message):
 		await fry_helper(message)
 
 	if message.content.startswith('!ping'):
+		log_info('Ping')
 		await message.channel.send(f'Pong! Latency: {client.latency}')
 
 
