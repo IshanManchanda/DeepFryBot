@@ -8,7 +8,7 @@ from PIL import Image, ImageEnhance, ImageOps
 from cv2 import CHAIN_APPROX_NONE, CascadeClassifier, MORPH_CROSS, \
 	RETR_EXTERNAL, THRESH_BINARY, THRESH_BINARY_INV, bitwise_and, \
 	boundingRect, dilate, findContours, getStructuringElement, threshold
-from discord import File
+from discord import File, HTTPException
 from numba import njit
 from numpy import arcsin, arctan, array, copy, pi, sin, sqrt, square, sum
 from numpy.random import normal, random
@@ -21,15 +21,6 @@ bin_path = path_split(abspath(__file__))[0]
 
 async def fry_image(message, attachment, number_of_cycles, args):
 	log_info('Starting Image Fry')
-
-	name = message.author.name
-	filename = '%s_%s_%s.png' % (
-		message.guild.id if message.guild else '<NONE>',
-		name,
-		message.id
-	)
-	filepath = path_join(bin_path, 'temp', filename)
-	print(attachment.filename)
 
 	try:
 		data = await attachment.read()
@@ -56,7 +47,7 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	)
 	magnitude = 4 if args['deep'] else 1 if args['shallow'] else 2
 
-	caption = __get_caption(name, number_of_cycles, args)
+	caption = __get_caption(message.author.name, number_of_cycles, args)
 
 	img = __fry(
 		img, number_of_cycles, number_of_emojis,
@@ -72,16 +63,24 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	log_info('Frying effects applied')
 
 	bio = BytesIO()
-	bio.name = filename
 	img.save(bio, 'PNG')
 	bio.seek(0)
-	await message.channel.send(caption, file=File(bio, filename))
 
+	try:
+		await message.channel.send(caption, File(bio, attachment.filename))
+	except HTTPException:
+		log_error('Discord HTTP Exception')
+
+	filename = '%s_%s_%s.png' % (
+		message.guild.id if message.guild else '<NONE>',
+		message.author.name,
+		message.id
+	)
+	filepath = path_join(bin_path, 'temp', filename)
 	img.save(filepath, 'PNG')
 	log_info('Image saved and replied')
-	# await __upload_to_imgur(filepath, caption)
-	# log_info('Image frying process completed')
-	return
+	await __upload_to_imgur(filepath, caption)
+	log_info('Image frying process completed')
 
 
 def __fry(
@@ -370,14 +369,17 @@ async def __upload_to_imgur(path, caption):
 				title=caption,
 				album=environ.get('IMGUR_ALBUM')
 			)
+			log_info('Image successfully uploaded')
+			break
 		except Exception:
 			log_warn('Upload failed, refreshing token')
 			im.refresh_access_token()
 			sleep(10)
 			continue
+	else:
+		log_error('Upload failed, proceeding')
 	log_info('Deleting file')
 	remove(path)
-	return
 
 
 def __get_caption(name, number_of_cycles, args):
