@@ -67,7 +67,7 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	bio.seek(0)
 
 	try:
-		await message.channel.send(caption, File(bio, attachment.filename))
+		await message.channel.send(caption, file=File(bio, attachment.filename))
 	except HTTPException:
 		log_error('Discord HTTP Exception')
 
