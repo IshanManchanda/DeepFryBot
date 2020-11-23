@@ -29,7 +29,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-	print(f'Message from {message.author}: {message.content}')
+	log_info(f'Message from {message.author}: {message.content}')
 
 	if message.author == client.user:
 		return
@@ -44,7 +44,7 @@ async def on_message(message):
 		# with message.channel.typing:
 		await fry_helper(message)
 
-	if message.content.startswith('!ping'):
+	if message.content.lower().startswith('!ping'):
 		log_info('Ping')
 		await message.channel.send(f'Pong! Latency: {client.latency}')
 

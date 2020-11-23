@@ -7,7 +7,7 @@ async def fry_helper(message):
 
 	for attachment in message.attachments:
 		print('Attachment found:', attachment.url)
-		text = message.content
+		text = message.content.lower()
 		n = (
 			5 if 'tsar bomba' in text else
 			3 if 'nuke' in text or 'nuking' in text else
