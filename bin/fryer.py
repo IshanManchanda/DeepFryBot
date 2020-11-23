@@ -72,7 +72,7 @@ async def fry_image(message, attachment, number_of_cycles, args):
 		log_error('Discord HTTP Exception')
 
 	filename = '%s_%s_%s.png' % (
-		message.guild.id if message.guild else '<NONE>',
+		message.guild.id if message.guild else 'NONE',
 		message.author.name,
 		message.id
 	)
@@ -349,10 +349,10 @@ async def __upload_to_imgur(path, caption):
 		return
 
 	# TODO: Convert to GIF and upload.
-	if path[-3:] == 'mp4':
-		remove(path)
-		log_warn('Skipping mp4 upload')
-		return
+	# if path[-3:] == 'mp4':
+	# 	remove(path)
+	# 	log_warn('Skipping mp4 upload')
+	# 	return
 
 	log_info('Authorizing imgur client')
 	im = Imgur(
@@ -361,8 +361,8 @@ async def __upload_to_imgur(path, caption):
 		environ.get('IMGUR_ACCESS_TOKEN'),
 		environ.get('IMGUR_REFRESH_TOKEN')
 	)
+
 	for _ in range(5):
-		# noinspection PyBroadException
 		try:
 			im.upload_image(
 				path=abspath(path),
@@ -378,6 +378,7 @@ async def __upload_to_imgur(path, caption):
 			continue
 	else:
 		log_error('Upload failed, proceeding')
+
 	log_info('Deleting file')
 	remove(path)
 
