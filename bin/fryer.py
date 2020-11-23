@@ -1,37 +1,25 @@
-from os import environ, remove
 from io import BytesIO
 from os import environ, remove
 from os.path import abspath, isfile, join as path_join, split as path_split
 from random import shuffle
 from time import sleep
-from urllib.error import HTTPError, URLError
-from urllib.request import urlopen
 
 from PIL import Image, ImageEnhance, ImageOps
+from cv2 import CHAIN_APPROX_NONE, CascadeClassifier, MORPH_CROSS, \
+	RETR_EXTERNAL, THRESH_BINARY, THRESH_BINARY_INV, bitwise_and, \
+	boundingRect, dilate, findContours, getStructuringElement, threshold
 from discord import File
 from numpy import arcsin, arctan, array, copy, pi, sin, sqrt, square, sum
 from numpy.random import normal, random
 from pyimgur import Imgur
 
+from bin.utils.logs import log_error, log_info, log_warn
+
 bin_path = path_split(abspath(__file__))[0]
 
 
-# @run_async
-# def fry_image(update, url, number_of_cycles, args):
-async def fry_image(message, attachment):
-	# log_info('Starting Image Fry')
-	# number_of_emojis = (
-	# 	3 if args['high-fat']
-	# 	else 1 if args['low-fat']
-	# 	else 0 if args['no-fat']
-	# 	else 2
-	# )
-	# bulge_probability = (
-	# 	0.75 if args['heavy']
-	# 	else 0 if args['light']
-	# 	else 0.45
-	# )
-	# magnitude = 4 if args['deep'] else 1 if args['shallow'] else 2
+async def fry_image(message, attachment, number_of_cycles, args):
+	log_info('Starting Image Fry')
 
 	name = message.author.name
 	filename = '%s_%s_%s.png' % (
@@ -42,35 +30,46 @@ async def fry_image(message, attachment):
 	filepath = path_join(bin_path, 'temp', filename)
 	print(attachment.filename)
 
-	data = await attachment.read()
-	# print('Read img')
-	img = Image.open(BytesIO(data))
+	try:
+		data = await attachment.read()
+		img = Image.open(BytesIO(data))
+	except Exception:
+		log_error('Image download failed')
+		return
+
 	if img.mode != 'RGB':
 		img = img.convert('RGB')
 	img.save(filepath)
-	print('Saved image!')
+	log_info('Image successfully downloaded')
 
-	# caption = __get_caption(name, number_of_cycles, args)
-	caption = f'Requested by {name}.'
+	number_of_emojis = (
+		3 if args['high-fat']
+		else 1 if args['low-fat']
+		else 0 if args['no-fat']
+		else 2
+	)
+	bulge_probability = (
+		0.75 if args['heavy']
+		else 0 if args['light']
+		else 0.45
+	)
+	magnitude = 4 if args['deep'] else 1 if args['shallow'] else 2
 
-	# success, img = __get_image(url)
-	# if not success:
-		# log_error('Image download failed')
-		# return
-	# log_info('Image successfully downloaded')
+	caption = __get_caption(name, number_of_cycles, args)
+	# caption = f'Requested by {name}.'
 
-	# img = __fry(
-	# 	img, 1, 2,
-	# 	0.4, False, False
-	# )
+	img = __fry(
+		img, number_of_cycles, number_of_emojis,
+		bulge_probability, args['chilli'], args['vitamin-b']
+	)
 
-	# log_info('Frying effects starting')
+	log_info('Frying effects starting')
 	fs = [__posterize, __sharpen, __increase_contrast, __colorize]
-	# for _ in range(number_of_cycles):
-	shuffle(fs)
-	for f in fs:
-		img = f(img, 2)
-	# log_info('Frying effects applied')
+	for _ in range(number_of_cycles):
+		shuffle(fs)
+		for f in fs:
+			img = f(img, magnitude)
+	log_info('Frying effects applied')
 
 	bio = BytesIO()
 	bio.name = filename
@@ -78,25 +77,11 @@ async def fry_image(message, attachment):
 	bio.seek(0)
 	await message.channel.send(caption, file=File(bio, filename))
 
-	# log_info('Image saved and replied')
 	img.save(filepath, 'PNG')
+	log_info('Image saved and replied')
 	# __upload_to_imgur(filepath, caption)
-
-
-# log_info('Image frying process completed')
-
-
-def __get_image(url):
-	for _ in range(5):
-		try:
-			return 1, Image.open(BytesIO(urlopen(url).read()))
-		except (HTTPError, URLError):
-			sleep(1)
-		except (OSError, UnboundLocalError):
-			# log_error('OSError while retrieving image')
-			return 0, None
-	# log_warn('Quitting loop while retrieving image')
-	return 0, None
+	# log_info('Image frying process completed')
+	return
 
 
 # @jit(fastmath=True)
@@ -104,32 +89,32 @@ def __fry(
 		img, number_of_cycles, number_of_emojis,
 		bulge_probability, laser, vitamin_b
 ):
-	# log_info('__fry starting')
-	# if laser:
-	# log_info('Finding eye coordinates')
-	# eye_coords = __find_eyes(img)
-	# log_info('Eye coordinates found')
-	# img = __add_lasers(img, eye_coords)
-	# log_info('Laser eyes added')
+	log_info('__fry starting')
+	if laser:
+		log_info('Finding eye coordinates')
+		eye_coords = __find_eyes(img)
+		log_info('Eye coordinates found')
+		img = __add_lasers(img, eye_coords)
+		log_info('Laser eyes added')
 
-	# if vitamin_b:
-	# log_info('Finding char coordinates')
-	# coords = __find_chars(img)
-	# log_info('Char coordinates found')
-	# img = __add_b(img, coords, number_of_emojis / 20)
-	# log_info('"B"s added')
+	if vitamin_b:
+		log_info('Finding char coordinates')
+		coords = __find_chars(img)
+		log_info('Char coordinates found')
+		img = __add_b(img, coords, number_of_emojis / 20)
+		log_info('"B"s added')
 
-	# log_info('Starting emoji adding')
+	log_info('Starting emoji adding')
 	img = __add_emojis(img, number_of_cycles * number_of_emojis)
-	# log_info('emojis added')
+	log_info('emojis added')
 
-	# log_info('Starting bulge adding')
+	log_info('Starting bulge adding')
 	w, h = img.width - 1, img.height - 1
 	for _ in range(number_of_cycles):
 		if random(1)[0] > bulge_probability:
 			continue
 
-		# __add_bulge(img, coords, radius, flatness, h, ior)
+		# (img, coords, radius, flatness, h, ior)
 		img = __add_bulge(
 			img,
 			array([
@@ -141,11 +126,66 @@ def __fry(
 			6 + random(2)[0],
 			1.2 + random(2)[0]
 		)
-	# log_info('Bulges added, __fry completed')
+	log_info('Bulges added, __fry completed')
 	return img
 
 
 # @jit(fastmath=True)
+def __find_chars(img):
+	log_info('__find_chars called')
+	# Convert image to B&W
+	gray = array(img.convert("L"))
+
+	# Convert image to binary
+	ret, mask = threshold(gray, 180, 255, THRESH_BINARY)
+	image_final = bitwise_and(gray, gray, mask=mask)
+	Image.fromarray(image_final).save('image_final.png')
+
+	ret, new_img = threshold(image_final, 180, 255, THRESH_BINARY_INV)
+	Image.fromarray(new_img).save('new_img.png')
+
+	# Idk
+	kernel = getStructuringElement(MORPH_CROSS, (3, 3))
+	dilated = dilate(new_img, kernel, iterations=1)
+	Image.fromarray(dilated).save('out.png')
+	_, contours, _ = findContours(dilated, RETR_EXTERNAL, CHAIN_APPROX_NONE)
+
+	coords = []
+	for contour in contours:
+		# get rectangle bounding contour
+		[x, y, w, h] = boundingRect(contour)
+		# ignore large chars (probably not chars)
+		# if w > 70 and h > 70:
+		# 	continue
+		coords.append((x, y, w, h))
+
+	log_info('__find_chars completed')
+	return coords
+
+
+# @jit(fastmath=True)
+def __find_eyes(img):
+	log_info('__find_eyes starting')
+	coords = []
+	face_cascade = CascadeClassifier(
+		path_join(bin_path, 'resources/classifiers/haarcascade_frontalface.xml')
+	)
+	eye_cascade = CascadeClassifier(
+		path_join(bin_path, 'resources/classifiers/haarcascade_eye.xml')
+	)
+	gray = array(img.convert("L"))
+
+	faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+	for (x, y, w, h) in faces:
+		roi_gray = gray[y:y + h, x:x + w]
+		eyes = eye_cascade.detectMultiScale(roi_gray)
+		for (ex, ey, ew, eh) in eyes:
+			coords.append((x + ex + ew / 2, y + ey + eh / 2))
+
+	log_info('__find_eyes completed')
+	return coords
+
+
 def __posterize(img, p):
 	return ImageOps.posterize(
 		img,
@@ -153,31 +193,27 @@ def __posterize(img, p):
 	)
 
 
-# @jit(fastmath=True)
 def __sharpen(img, p):
 	return ImageEnhance.Sharpness(img).enhance(
 		(img.width * img.height * p / 3200) ** 0.4
 	)
 
 
-# @jit(fastmath=True)
 def __increase_contrast(img, p):
 	return ImageEnhance.Contrast(img).enhance(normal(1.8, 0.8) * p / 2)
 
 
-# @jit(fastmath=True)
 def __colorize(img, p):
 	return ImageEnhance.Color(img).enhance(normal(2.5, 1) * p / 2)
 
 
-# @jit(fastmath=True)
 def __add_lasers(img, coords):
-	# log_info('__add_lasers started')
+	log_info('__add_lasers started')
 	if not coords:
 		return img
 	tmp = img.copy()
 
-	laser = Image.open(f'{bin_path}/Resources/Frying/laser1.png')
+	laser = Image.open(path_join(bin_path, 'resources/frying/laser1.png'))
 	for coord in coords:
 		tmp.paste(
 			laser, (
@@ -186,34 +222,34 @@ def __add_lasers(img, coords):
 			), laser
 		)
 
-	# log_info('__add_lasers completed')
+	log_info('__add_lasers completed')
 	return tmp
 
 
 # @jit(fastmath=True)
 def __add_b(img, coords, c):
-	# log_info('__add_b started')
+	log_info('__add_b started')
 	tmp = img.copy()
 
-	b = Image.open(f'{bin_path}/Resources/Frying/B.png')
+	b = Image.open(path_join(bin_path, 'resources/frying/b.png'))
 	for coord in coords:
 		if random(1)[0] < c:
 			resized = b.copy()
 			resized.thumbnail((coord[2], coord[3]), Image.ANTIALIAS)
 			tmp.paste(resized, (int(coord[0]), int(coord[1])), resized)
 
-	# log_info('__add_b completed')
+	log_info('__add_b completed')
 	return tmp
 
 
 # @jit(fastmath=True)
 def __add_emojis(img, m):
-	# log_info('__add_emojis started')
-	emojis = ['100', 'OK', 'laugh', 'fire', 'think']
+	log_info('__add_emojis started')
+	emojis = ['100', 'fire', 'hmmm', 'laugh', 'ok',]
 	tmp = img.copy()
 
-	for i in emojis:
-		emoji = Image.open(f'{bin_path}/Resources/Frying/%s.png' % i)
+	for e in emojis:
+		emoji = Image.open(path_join(bin_path, 'resources/frying/%s.png' % e))
 		for _ in range(int(random(1)[0] * m)):
 			coord = random(2) * array([img.width, img.height])
 			size = int((img.width / 10) * (random(1)[0] + 1)) + 1
@@ -224,7 +260,7 @@ def __add_emojis(img, m):
 			resized.thumbnail((size, size), Image.ANTIALIAS)
 			tmp.paste(resized, (int(coord[0]), int(coord[1])), resized)
 
-	# log_info('__add_emojis completed')
+	log_info('__add_emojis completed')
 	return tmp
 
 
@@ -248,7 +284,7 @@ def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 	:return: The Bulged Image
 	:rtype: PIL.Image
 	"""
-	# log_info('__add_bulge started')
+	log_info('__add_bulge started')
 
 	width = img.width
 	height = img.height
@@ -327,24 +363,24 @@ def __add_bulge(img: Image.Image, coords, radius, flatness, h, ior):
 				bulged[y][x] = [0, 0, 0]
 	img = Image.fromarray(bulged)
 
-	# log_info('__add_bulge completed')
+	log_info('__add_bulge completed')
 	return img
 
 
 # @run_async
 def __upload_to_imgur(path, caption):
-	# log_info('__upload started')
+	log_info('__upload started')
 	if not isfile(path):
-		# log_warn('File to be uploaded not found')
+		log_warn('File to be uploaded not found')
 		return
 
 	# TODO: Convert to GIF and upload.
 	if path[-3:] == 'mp4':
 		remove(path)
-		# log_warn('Skipping mp4 upload')
+		log_warn('Skipping mp4 upload')
 		return
 
-	# log_info('Authorizing imgur client')
+	log_info('Authorizing imgur client')
 	im = Imgur(
 		environ.get('IMGUR_CLIENT_ID'),
 		environ.get('IMGUR_CLIENT_KEY'),
@@ -360,11 +396,11 @@ def __upload_to_imgur(path, caption):
 				album=environ.get('IMGUR_ALBUM')
 			)
 		except Exception:
-			# log_warn('Upload failed, refreshing token')
+			log_warn('Upload failed, refreshing token')
 			im.refresh_access_token()
 			sleep(10)
 			continue
-	# log_info('Deleting file')
+	log_info('Deleting file')
 	remove(path)
 	return
 
