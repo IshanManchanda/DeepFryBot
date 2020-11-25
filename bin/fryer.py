@@ -62,43 +62,21 @@ async def fry_image(message, attachment, number_of_cycles, args):
 			img = f(img, magnitude)
 	log_info('Frying effects applied')
 
-	bio = BytesIO()
-	img.save(bio, 'PNG', optimize=True)
-	bio.seek(0)
-	file = File(bio, attachment.filename)
-
-	try:
-		await message.channel.send(caption, file=file)
-	except HTTPException:
-		log_warn('Discord HTTP Exception')
-		log_warn('Trying Compressed version')
-
-		# REVIEW: Try multiple qualities? Eg: 95, 90, 85, 80, 75?
-		bio = BytesIO()
-		img.save(bio, 'JPEG', optimize=True, quality=85)
-		bio.seek(0)
-		file = File(bio, attachment.filename)
-
-		try:
-			await message.channel.send(caption, file=file)
-		except:
-			log_error('Discord HTTP Exception')
-			return
-		jpeg = True
-	else:
-		jpeg = False
+	png, quality = await send_image(message, img, attachment.filename, caption)
+	if not quality:
+		return
 
 	filename = '%s_%s_%s.' % (
 		message.guild.id if message.guild else 'NONE',
 		message.author.name,
 		message.id
-	) + 'jpg' if jpeg else 'png'
+	) + 'png' if png else 'jpg'
 	filepath = path_join(bin_path, 'temp', filename)
 
-	if jpeg:
-		img.save(filepath, 'JPEG', optimize=True, quality=85)
-	else:
+	if png:
 		img.save(filepath, 'PNG', optimize=True)
+	else:
+		img.save(filepath, 'JPEG', optimize=True, quality=quality)
 
 	log_info('Image saved and replied')
 	await __upload_to_imgur(filepath, caption)
@@ -428,3 +406,31 @@ def __get_caption(name, number_of_cycles, args):
 	if args['vitamin-b']:
 		return f'{caption}, with added Vitamin-B.'
 	return f'{caption}.'
+
+
+async def send_image(message, img, filename, caption):
+	bio = BytesIO()
+	img.save(bio, 'PNG', optimize=True)
+	bio.seek(0)
+	file = File(bio, filename)
+
+	try:
+		await message.channel.send(caption, file=file)
+		return True, 100
+	except HTTPException:
+		log_warn('Discord HTTP Exception')
+		log_warn('Trying Compressed versions')
+
+	for quality in range(90, 69, -5):
+		bio = BytesIO()
+		img.save(bio, 'JPEG', optimize=True, quality=quality)
+		bio.seek(0)
+		file = File(bio, filename)
+
+		try:
+			await message.channel.send(caption, file=file)
+			return False, quality
+		except:
+			log_error(f'Discord HTTP Exception ({quality}% quality)')
+
+	return False, 0
