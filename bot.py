@@ -41,8 +41,8 @@ async def on_message(message):
 
 	if len(message.attachments):
 		# TODO: Send channel typing update
-		# with message.channel.typing:
-		await fry_helper(message)
+		async with message.channel.typing():
+			await fry_helper(message)
 
 	if message.content.lower().startswith('!ping'):
 		log_info('Ping')
