@@ -63,13 +63,23 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	log_info('Frying effects applied')
 
 	bio = BytesIO()
-	img.save(bio, 'PNG')
+	img.save(bio, 'PNG', optimize=True)
 	bio.seek(0)
+	file = File(bio, attachment.filename)
 
 	try:
-		await message.channel.send(caption, file=File(bio, attachment.filename))
+		await message.channel.send(caption, file=file)
 	except HTTPException:
-		log_error('Discord HTTP Exception')
+		log_warn('Discord HTTP Exception')
+		log_warn('Trying Compressed version')
+		bio = BytesIO()
+		img.save(bio, 'JPG', optimize=True, quality=85)
+		bio.seek(0)
+		file = File(bio, attachment.filename)
+		try:
+			await message.channel.send(caption, file=file)
+		except:
+			log_error('Discord HTTP Exception')
 
 	filename = '%s_%s_%s.png' % (
 		message.guild.id if message.guild else 'NONE',
@@ -125,10 +135,8 @@ def __find_chars(img):
 	# Convert image to binary
 	ret, mask = threshold(gray, 180, 255, THRESH_BINARY)
 	image_final = bitwise_and(gray, gray, mask=mask)
-	# Image.fromarray(image_final).save('image_final.png')
 
 	ret, new_img = threshold(image_final, 180, 255, THRESH_BINARY_INV)
-	# Image.fromarray(new_img).save('new_img.png')
 
 	# Idk
 	kernel = getStructuringElement(MORPH_CROSS, (3, 3))
@@ -348,7 +356,6 @@ async def __upload_to_imgur(path, caption):
 		log_warn('File to be uploaded not found')
 		return
 
-	# TODO: Convert to GIF and upload.
 	# if path[-3:] == 'mp4':
 	# 	remove(path)
 	# 	log_warn('Skipping mp4 upload')
