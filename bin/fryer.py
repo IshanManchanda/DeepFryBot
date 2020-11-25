@@ -72,22 +72,34 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	except HTTPException:
 		log_warn('Discord HTTP Exception')
 		log_warn('Trying Compressed version')
+
+		# REVIEW: Try multiple qualities? Eg: 95, 90, 85, 80, 75?
 		bio = BytesIO()
-		img.save(bio, 'JPG', optimize=True, quality=85)
+		img.save(bio, 'JPEG', optimize=True, quality=85)
 		bio.seek(0)
 		file = File(bio, attachment.filename)
+
 		try:
 			await message.channel.send(caption, file=file)
 		except:
 			log_error('Discord HTTP Exception')
+			return
+		jpeg = True
+	else:
+		jpeg = False
 
-	filename = '%s_%s_%s.png' % (
+	filename = '%s_%s_%s.' % (
 		message.guild.id if message.guild else 'NONE',
 		message.author.name,
 		message.id
-	)
+	) + 'jpg' if jpeg else 'png'
 	filepath = path_join(bin_path, 'temp', filename)
-	img.save(filepath, 'PNG')
+
+	if jpeg:
+		img.save(filepath, 'JPEG', optimize=True, quality=85)
+	else:
+		img.save(filepath, 'PNG', optimize=True)
+
 	log_info('Image saved and replied')
 	await __upload_to_imgur(filepath, caption)
 	log_info('Image frying process completed')
