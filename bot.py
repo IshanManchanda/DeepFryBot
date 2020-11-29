@@ -4,7 +4,7 @@ from os import environ
 import discord
 from dotenv import load_dotenv
 
-from bin.helpers import fry_helper
+from bin.helpers import fry_attachment_helper
 from bin.utils.logs import log_info
 
 if 'DISCORD_TOKEN' not in environ:
@@ -40,9 +40,8 @@ async def on_message(message):
 		print(message.embeds[0].url)
 
 	if len(message.attachments):
-		# TODO: Send channel typing update
 		async with message.channel.typing():
-			await fry_helper(message)
+			await fry_attachment_helper(message)
 
 	if message.content.lower().startswith('!ping'):
 		log_info('Ping')
