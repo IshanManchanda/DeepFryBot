@@ -2,10 +2,10 @@ from bin.fryer import fry_image
 from bin.utils.text import keys
 
 
-async def fry_helper(message):
+async def fry_attachment_helper(message):
 	print(f'Found {len(message.attachments)} attachments')
 
-	for attachment in message.attachments:
+	for i, attachment in enumerate(message.attachments):
 		print('Attachment found:', attachment.url)
 		text = message.content.lower()
 		n = (
@@ -15,4 +15,4 @@ async def fry_helper(message):
 			1 if 'fry' in text else 1
 		)
 		args = {key: 1 if key in text else 0 for key in keys}
-		await fry_image(message, attachment, n, args)
+		await fry_image(message, attachment, n, args, i)

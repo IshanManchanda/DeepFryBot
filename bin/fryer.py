@@ -16,10 +16,13 @@ from pyimgur import Imgur
 
 from bin.utils.logs import log_error, log_info, log_warn
 
+# REVIEW: Look into preloading fry images
+#  minor speed improvement, but it would increase memory consumption.
+#  see if the increased memory consumption can be profiled?
 bin_path = path_split(abspath(__file__))[0]
 
 
-async def fry_image(message, attachment, number_of_cycles, args):
+async def fry_image(message, attachment, number_of_cycles, args, index):
 	log_info('Starting Image Fry')
 
 	try:
@@ -66,10 +69,11 @@ async def fry_image(message, attachment, number_of_cycles, args):
 	if not quality:
 		return
 
-	filename = '%s_%s_%s.' % (
+	filename = '%s_%s_%s_%s.' % (
 		message.guild.id if message.guild else 'NONE',
 		message.author.name,
-		message.id
+		message.id,
+		index
 	) + 'png' if png else 'jpg'
 	filepath = path_join(bin_path, 'temp', filename)
 
