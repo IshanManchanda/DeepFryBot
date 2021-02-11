@@ -117,7 +117,7 @@ def __fry(
 	log_info('emojis added')
 
 	log_info('Adding bulges')
-	__add_bulges_helper(img, number_of_cycles, bulge_probability)
+	img = __add_bulges_helper(img, number_of_cycles, bulge_probability)
 	log_info('Bulges added, __fry completed')
 	return img
 
@@ -268,8 +268,8 @@ def __add_bulges(img_data, size, coords, radius, flatness, h, ior):
 	"""
 	Creates a bulge like distortion to the image
 
-	# :param img: The Image
-	# :type img: PIL.Image
+	:param img_data: Image as a numpy array
+	:type img_data: numpy.array
 	:param coords: Numpy Array with Coordinates of Centre of Bulge
 	:type coords: numpy.array
 	:param radius: Radius of Bulge
