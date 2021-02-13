@@ -3,7 +3,7 @@ dist: focal
 
 language: python
 python:
-    - "3.8.6"
+    - "3.8.7"
 
 branches:
     only:
@@ -18,7 +18,7 @@ addons:
 install:
     - sudo apt install -y libsm6 libxrender1 libfontconfig1 libice6 libgl1-mesa-glx
     - pip install -U pip pipenv
-    - pipenv --python 3.8.6
+    - pipenv --python 3.8.7
 #    - pipenv install --dev
 
 #before_script:
