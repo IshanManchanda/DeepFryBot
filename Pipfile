@@ -7,7 +7,7 @@ verify_ssl = true
 
 [packages]
 "discord.py" = "==1.6.0"
-imageio-ffmpeg = "==0.4.3"
+imageio-ffmpeg = "==0.4.4"
 imutils = "==0.5.4"
 numba = "==0.52.0"
 numpy = "==1.20.1"
