@@ -173,7 +173,7 @@ requests = "*"
 
 [[package]]
 name = "python-dotenv"
-version = "0.19.0"
+version = "0.19.2"
 description = "Read key-value pairs from a .env file and set them as environment variables"
 category = "main"
 optional = false
@@ -244,7 +244,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "3.9.6"
-content-hash = "a4ef7cbea8e0ed482ba48c41949c0ba07210eb02252a04c2b99c0b25ca6619b6"
+content-hash = "09d366a0af78d1c46d799630c4d9378f9ceb83ad4b44e02059a72d992a17b4a6"
 
 [metadata.files]
 aiohttp = [
@@ -507,8 +507,8 @@ pyimgur = [
     {file = "pyimgur-0.6.0.tar.gz", hash = "sha256:f776ca7f14663bd9ac14a1380db62c87ed32231d159d2d167ad1cb817dcb9144"},
 ]
 python-dotenv = [
-    {file = "python-dotenv-0.19.0.tar.gz", hash = "sha256:f521bc2ac9a8e03c736f62911605c5d83970021e3fa95b37d769e2bbbe9b6172"},
-    {file = "python_dotenv-0.19.0-py2.py3-none-any.whl", hash = "sha256:aae25dc1ebe97c420f50b81fb0e5c949659af713f31fdb63c749ca68748f34b1"},
+    {file = "python-dotenv-0.19.2.tar.gz", hash = "sha256:a5de49a31e953b45ff2d2fd434bbc2670e8db5273606c1e737cc6b93eff3655f"},
+    {file = "python_dotenv-0.19.2-py2.py3-none-any.whl", hash = "sha256:32b2bdc1873fd3a3c346da1c6db83d0053c3c62f28f1f38516070c4c8971b1d3"},
 ]
 pytz = [
     {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
