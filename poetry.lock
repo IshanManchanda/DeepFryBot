@@ -91,11 +91,11 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "imageio-ffmpeg"
-version = "0.4.5"
+version = "0.4.7"
 description = "FFMPEG wrapper for Python"
 category = "main"
 optional = false
-python-versions = ">=3.4"
+python-versions = ">=3.5"
 
 [[package]]
 name = "imutils"
@@ -244,7 +244,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "3.9.6"
-content-hash = "a4ef7cbea8e0ed482ba48c41949c0ba07210eb02252a04c2b99c0b25ca6619b6"
+content-hash = "e19622500eebf4f37e296ca220265d9f19217a64113fbdbd77e17da657b491ce"
 
 [metadata.files]
 aiohttp = [
@@ -315,12 +315,12 @@ idna = [
     {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
 ]
 imageio-ffmpeg = [
-    {file = "imageio-ffmpeg-0.4.5.tar.gz", hash = "sha256:f2ea4245a2adad25dedf98d343159579167e549ac8c4691cef5eff980e20c139"},
-    {file = "imageio_ffmpeg-0.4.5-py3-none-macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl", hash = "sha256:266601aab7619acf6ff78cd5ba78b5a593a1119a96d266d33b88bfcd01bbd3ca"},
-    {file = "imageio_ffmpeg-0.4.5-py3-none-manylinux2010_x86_64.whl", hash = "sha256:f127b8cdd842e8398de5f2aef23c687ae75d4d964e1df2ea3a9ff03e92a370e7"},
-    {file = "imageio_ffmpeg-0.4.5-py3-none-manylinux2014_aarch64.whl", hash = "sha256:db4d318f640419037a0df29bb11b1022f2f8094c90b4aac8affc7177b8ce4641"},
-    {file = "imageio_ffmpeg-0.4.5-py3-none-win32.whl", hash = "sha256:39a9ab4326bdf5eae3457961dfdfb4317078659ebe4e6980914ac897a462aeb2"},
-    {file = "imageio_ffmpeg-0.4.5-py3-none-win_amd64.whl", hash = "sha256:d2ba8339eecc02fa73a6b85c34654c49a7c78d732a1ac76478d11224e6cfa902"},
+    {file = "imageio-ffmpeg-0.4.7.tar.gz", hash = "sha256:7a08838f97f363e37ca41821b864fd3fdc99ab1fe2421040c78eb5f56a9e723e"},
+    {file = "imageio_ffmpeg-0.4.7-py3-none-macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl", hash = "sha256:6514f1380daf42815bc8c83aad63f33e0b8b47133421ddafe7b410cd8dfbbea5"},
+    {file = "imageio_ffmpeg-0.4.7-py3-none-manylinux2010_x86_64.whl", hash = "sha256:27b48c32becae1658aa81c3a6b922538e4099edf5fbcbdb4ff5dbc84b8ffd3d3"},
+    {file = "imageio_ffmpeg-0.4.7-py3-none-manylinux2014_aarch64.whl", hash = "sha256:fc60686ef03c2d0f842901b206223c30051a6a120384458761390104470846fd"},
+    {file = "imageio_ffmpeg-0.4.7-py3-none-win32.whl", hash = "sha256:6aba52ddf0a64442ffcb8d30ac6afb668186acec99ecbc7ae5bd171c4f500bbc"},
+    {file = "imageio_ffmpeg-0.4.7-py3-none-win_amd64.whl", hash = "sha256:8e724d12dfe83e2a6eb39619e820243ca96c81c47c2648e66e05f7ee24e14312"},
 ]
 imutils = [
     {file = "imutils-0.5.4.tar.gz", hash = "sha256:03827a9fca8b5c540305c0844a62591cf35a0caec199cb0f2f0a4a0fb15d8f24"},
